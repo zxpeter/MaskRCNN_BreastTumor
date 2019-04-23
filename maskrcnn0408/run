@@ -1,0 +1,61 @@
+
+export CUDA_VISIBLE_DEVICES=2,3,4,5
+echo $CUDA_VISIBLE_DEVICES
+
+export CUDA_VISIBLE_DEVICES=0,1,2,3
+echo $CUDA_VISIBLE_DEVICES
+
+export CUDA_VISIBLE_DEVICES=4,5
+echo $CUDA_VISIBLE_DEVICES
+
+export CUDA_VISIBLE_DEVICES=6,7
+echo $CUDA_VISIBLE_DEVICES
+
+tensorboard --logdir='.' --port=6006
+http://129.123.7.85:6006/
+
+nohup ./train.py --config MODE_MASK=True MODE_FPN=True DATA.BASEDIR=/media/sdc/xzhao/code/small_dataset BACKBONE.WEIGHTS=ImageNet-R50-AlignPadding.npz &
+
+nohup ./train.py --config MODE_MASK=True MODE_FPN=False DATA.BASEDIR=/media/sdc/xzhao/code/small_dataset BACKBONE.WEIGHTS=ImageNet-R50-AlignPadding.npz &
+
+nohup ./train.py --config MODE_MASK=True MODE_FPN=True DATA.BASEDIR=/media/sdc/xzhao/code/small_dataset BACKBONE.WEIGHTS=/media/sdc/xzhao/code/maskrcnn_0407/ImageNet-R50-AlignPadding.npz &
+
+/media/sdc/xzhao/COCO/DIR
+
+./train.py --evaluate output.json --eval_data 0_test --load train_log/mrcnn_right8000anno_origin/f_0/mAP.index --config MODE_MASK=True MODE_FPN=True DATA.BASEDIR=/media/sdc/xzhao/code/small_dataset 
+
+./train.py --evaluate output.json --eval_data 0_test --load train_log/mrcnn_right8000anno_origin/f_0/checkpoint --config MODE_MASK=True MODE_FPN=True DATA.BASEDIR=/media/sdc/xzhao/code/small_dataset 
+
+./train.py --evaluate output.json --eval_data 1_test --load train_log/mrcnn_right8000anno_origin/f_1/mAP.index --config MODE_MASK=True MODE_FPN=True DATA.BASEDIR=/media/sdc/xzhao/code/small_dataset 
+
+./train.py --evaluate output.json --eval_data 2_test --load train_log/mrcnn_right8000anno_origin/f_2/mAP.index --config MODE_MASK=True MODE_FPN=True DATA.BASEDIR=/media/sdc/xzhao/code/small_dataset 
+
+./train.py --evaluate output.json --eval_data 3_test --load train_log/maskrcnn_7000_right_rotate_300s/f_3/checkpoint --config MODE_MASK=True MODE_FPN=True DATA.BASEDIR=/media/sdc/xzhao/code/small_dataset 
+
+./train.py --evaluate output.json --eval_data 4_test --load train_log/maskrcnn_7000_right_rotate_300s/f_4/checkpoint --config MODE_MASK=True MODE_FPN=True DATA.BASEDIR=/media/sdc/xzhao/code/small_dataset 
+
+./train.py --evaluate output.json --eval_data 5_test --load train_log/maskrcnn_7000_right_rotate_300s/f_5/checkpoint --config MODE_MASK=True MODE_FPN=True DATA.BASEDIR=/media/sdc/xzhao/code/small_dataset 
+
+./train.py --predict upload --load checkpoint_history/maskrcnn_model-26000/model-26000.index --config MODE_MASK=True MODE_FPN=True 
+
+
+
+./train.py --visualize --load /media/sdc/cxd/FasterRCNN/Maskrcnn/train_log/maskrcnn_f3_big+small/checkpoint --output_dir maskrcnn_f3_big --config MODE_MASK=True MODE_FPN=True DATA.BASEDIR=/media/sdc/xzhao/code/small_dataset 
+
+
+cmd for windows:
+
+python train.py --config MODE_MASK=True MODE_FPN=False DATA.BASEDIR=F:/pycharm/ownCOCO/small_dataset_from_Utah_sys BACKBONE.WEIGHTS=ImageNet-R50-AlignPadding.npz
+
+
+python train.py --evaluate output.json --load maskrcnn_model-26000/model-26000.index --config MODE_MASK=True MODE_FPN=True DATA.BASEDIR=F:/pycharm/ownCOCO/small_dataset_from_Utah_sys 
+
+
+python train.py --visualize --load maskrcnn_model-26000/model-26000.index --config MODE_MASK=True MODE_FPN=True DATA.BASEDIR=F:/pycharm/ownCOCO/small_dataset_from_Utah_sys
+
+python train.py --predict upload --load maskrcnn_model-26000/model-26000.index --config MODE_MASK=True MODE_FPN=True 
+
+cmd for cx_freezer:
+
+
+train.exe --predict upload --load maskrcnn_model-26000/model-26000.index --config MODE_MASK=True MODE_FPN=True 

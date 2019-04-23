@@ -297,7 +297,6 @@ def get_train_dataflow(i):
         num - len(roidbs), len(roidbs)))
     # roidbs_1 = copy.deepcopy(roidbs)
     # roidbs_2 = copy.deepcopy(roidbs)
-    # roidbs_3 = copy.deepcopy(roidbs)
 
     for roi in roidbs:
         roi['aug_name'] = 'origin'
@@ -307,10 +306,7 @@ def get_train_dataflow(i):
     #     roi['aug_name'] = 'flip'
     # for roi in roidbs_2:
     #     roi['aug_name'] = 'rotate'
-    # for roi in roidbs_3:
-    #     roi['aug_name'] = 'elastic'
 
-    # roidbs = roidbs + roidbs_1 + roidbs_2 + roidbs_3
     # roidbs = roidbs + roidbs_1 + roidbs_2
     # roidbs = roidbs + roidbs_elastic
     roidbs = roidbs
@@ -326,9 +322,6 @@ def get_train_dataflow(i):
     aug_2 = imgaug.AugmentorList(
             [CustomResize(cfg.PREPROC.TRAIN_SHORT_EDGE_SIZE, cfg.PREPROC.MAX_SIZE),
              imgaug.Rotation(90)])
-    # aug_3 = imgaug.AugmentorList(
-    #         [CustomResize(cfg.PREPROC.TRAIN_SHORT_EDGE_SIZE, cfg.PREPROC.MAX_SIZE),
-    #         ElasticDeform()])
 
     def preprocess(roidb):
         fname, boxes, klass, is_crowd = roidb['file_name'], roidb['boxes'], roidb['class'], roidb['is_crowd']
@@ -352,11 +345,8 @@ def get_train_dataflow(i):
         #     aug = aug_1
         # elif roidb['aug_name'] == 'rotate':
         #     aug = aug_2
-        # elif roidb['aug_name'] == 'elastic':
-        #     aug = aug_3
 
         im, params = aug.augment_return_params(im)
-        # cv2.imwrite("{}_{}.png".format(fname[-7:-4], roidb['aug_name']), im)
         points = box_to_point8(boxes)
         points = aug.augment_coords(points, params)
         boxes = point8_to_box(points)
