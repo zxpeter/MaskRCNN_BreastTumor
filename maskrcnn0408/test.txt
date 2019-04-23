@@ -1,0 +1,2 @@
+ImageSets/img/tumor_104.jpg Annotations/anno/anno_tumor_104.bmp
+ImageSets/img/tumor_126.jpg Annotations/anno/anno_tumor_126.bmp
