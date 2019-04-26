@@ -287,29 +287,30 @@ def get_train_dataflow(i):
     roidbs = DetectionDataset().load_training_roidbs([i + '_train'])
     print_class_histogram(roidbs)
 
-    # roidbs_elastic = DetectionDataset().load_training_roidbs(['elastic_' + i + '_train'])
-    # print_class_histogram(roidbs)
+    roidbs_elastic = DetectionDataset().load_training_roidbs(['elastic_' + i + '_train'])
+    print_class_histogram(roidbs)
+
     # Valid training images should have at least one fg box.
     # But this filter shall not be applied for testing.
     num = len(roidbs)
     roidbs = list(filter(lambda img: len(img['boxes'][img['is_crowd'] == 0]) > 0, roidbs))
     logger.info("Filtered {} images which contain no non-crowd groudtruth boxes. Total #images for training: {}".format(
         num - len(roidbs), len(roidbs)))
-    # roidbs_1 = copy.deepcopy(roidbs)
-    # roidbs_2 = copy.deepcopy(roidbs)
+    roidbs_1 = copy.deepcopy(roidbs)
+    roidbs_2 = copy.deepcopy(roidbs)
 
     for roi in roidbs:
         roi['aug_name'] = 'origin'
-    # for roi in roidbs_elastic:
-    #     roi['aug_name'] = 'elastic'    
-    # for roi in roidbs_1:
-    #     roi['aug_name'] = 'flip'
-    # for roi in roidbs_2:
-    #     roi['aug_name'] = 'rotate'
+    for roi in roidbs_elastic:
+        roi['aug_name'] = 'elastic'   
+         
+    for roi in roidbs_1:
+        roi['aug_name'] = 'flip'
+    for roi in roidbs_2:
+        roi['aug_name'] = 'rotate'
 
-    # roidbs = roidbs + roidbs_1 + roidbs_2
-    # roidbs = roidbs + roidbs_elastic
-    roidbs = roidbs
+    roidbs = roidbs + roidbs_1 + roidbs_2
+    roidbs = roidbs + roidbs_elastic
 
     ds = DataFromList(roidbs, shuffle=True)
     print(len(ds))
@@ -341,10 +342,10 @@ def get_train_dataflow(i):
         # augmentation:
         if roidb['aug_name'] == 'origin' or roidb['aug_name'] == 'elastic':
             aug = aug_0
-        # elif roidb['aug_name'] == 'flip':
-        #     aug = aug_1
-        # elif roidb['aug_name'] == 'rotate':
-        #     aug = aug_2
+        elif roidb['aug_name'] == 'flip':
+            aug = aug_1
+        elif roidb['aug_name'] == 'rotate':
+            aug = aug_2
 
         im, params = aug.augment_return_params(im)
         points = box_to_point8(boxes)

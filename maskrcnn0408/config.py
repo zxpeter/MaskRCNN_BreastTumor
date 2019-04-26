@@ -118,7 +118,7 @@ _C.TRAIN.WEIGHT_DECAY = 1e-4
 _C.TRAIN.BASE_LR = 1e-2  # defined for total batch size=8. Otherwise it will be adjusted automatically
 _C.TRAIN.WARMUP = 1000   # in terms of iterations. This is not affected by #GPUs
 _C.TRAIN.WARMUP_INIT_LR = 1e-2 * 0.33  # defined for total batch size=8. Otherwise it will be adjusted automatically
-_C.TRAIN.STEPS_PER_EPOCH = 200 #500
+_C.TRAIN.STEPS_PER_EPOCH = 400 #500
 _C.TRAIN.STARTING_EPOCH = 1  # the first epoch to start with, useful to continue a training
 
 # LR_SCHEDULE means equivalent steps when the total batch size is 8.
@@ -163,10 +163,10 @@ _C.RPN.HEAD_DIM = 1024      # used in C4 only
 
 # RPN proposal selection -------------------------------
 # for C4
-_C.RPN.TRAIN_PRE_NMS_TOPK = 1200
-_C.RPN.TRAIN_POST_NMS_TOPK = 200
-_C.RPN.TEST_PRE_NMS_TOPK = 600
-_C.RPN.TEST_POST_NMS_TOPK = 100  # if you encounter OOM in inference, set this to a smaller number
+_C.RPN.TRAIN_PRE_NMS_TOPK = 12000
+_C.RPN.TRAIN_POST_NMS_TOPK = 2000
+_C.RPN.TEST_PRE_NMS_TOPK = 6000
+_C.RPN.TEST_POST_NMS_TOPK = 1000  # if you encounter OOM in inference, set this to a smaller number
 # for FPN, #proposals per-level and #proposals after merging are (for now) the same
 # if FPN.PROPOSAL_MODE = 'Joint', these options have no effect
 _C.RPN.TRAIN_PER_LEVEL_NMS_TOPK = 2000

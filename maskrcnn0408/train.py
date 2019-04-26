@@ -448,7 +448,7 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser()
     parser.add_argument('--load', help='load a model for evaluation or training. Can overwrite BACKBONE.WEIGHTS')
-    parser.add_argument('--logdir', help='log directory', default='train_log/mrcnn_right8000anno_origin/')
+    parser.add_argument('--logdir', help='log directory', default='train_log/right_f10_all/')
     parser.add_argument('--output_dir', help='output_di directory')
     parser.add_argument('--visualize', action='store_true', help='visualize intermediate results')
     parser.add_argument('--evaluate', help="Run evaluation. "
@@ -459,7 +459,7 @@ if __name__ == '__main__':
     parser.add_argument('--config', help="A list of KEY=VALUE to overwrite those defined in config.py",
                         nargs='+')
 
-    if get_tf_version_tuple() < (1, 6):
+    if get_tf_version_tuple() < (1, 6): 
         # https://github.com/tensorflow/tensorflow/issues/14657
         logger.warn("TF<1.6 has a bug which may lead to crash in FasterRCNN if you're unlucky.")
 
@@ -496,7 +496,7 @@ if __name__ == '__main__':
                 assert args.evaluate.endswith('.json'), args.evaluate
                 do_evaluate(predcfg, args.evaluate, (args.eval_data,))
     else:
-        for i in range(6):
+        for i in range(5):
             tf.reset_default_graph()
             MODEL = ResNetFPNModel() if cfg.MODE_FPN else ResNetC4Model()
             DetectionDataset() 
