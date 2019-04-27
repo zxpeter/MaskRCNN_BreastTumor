@@ -24,14 +24,14 @@ nohup ./train.py --config MODE_MASK=True MODE_FPN=False DATA.BASEDIR=/media/sdc/
 /media/sdc/xzhao/COCO/DIR
 
 
-./train.py --evaluate output.json --eval_data 2_test --load train_log/right_f10_all/f_2/mAP.index --config MODE_MASK=True MODE_FPN=True DATA.BASEDIR=/media/sdc/xzhao/code/small_dataset 
+./train.py --evaluate output.json --eval_data 0_test --load train_log/f10_all_elastic_rotate3/f_0/mAP.index --config MODE_MASK=True MODE_FPN=True DATA.BASEDIR=/media/sdc/xzhao/code/small_dataset 
 
 
 
 ./train.py --predict upload --load checkpoint_history/maskrcnn_model-26000/model-26000.index --config MODE_MASK=True MODE_FPN=True 
 
 
-./train.py --visualize --load /media/sdc/cxd/FasterRCNN/Maskrcnn/train_log/maskrcnn_f3_big+small/checkpoint --output_dir maskrcnn_f3_big --config MODE_MASK=True MODE_FPN=True DATA.BASEDIR=/media/sdc/xzhao/code/small_dataset 
+./train.py --visualize --eval_data 4_test --load train_log/right_f10_all/f_4/mAP.index --output_dir right_f10_all_f4 --config MODE_MASK=True MODE_FPN=True DATA.BASEDIR=/media/sdc/xzhao/code/small_dataset 
 
 
 cmd for windows:

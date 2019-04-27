@@ -371,11 +371,11 @@ class ResNetFPNModel(DetectionModel):
 #             cv2.imwrite("{}/{:03d}.png".format(output_dir, idx), viz)
 #             pbar.update()
 
-def do_visualize(model, model_path, output_dir='output'):
+def do_visualize(model, model_path, data_test, output_dir='output'):
     """
     Visualize some intermediate results (proposals, raw predictions) inside the pipeline.
     """
-    df = get_eval_dataflow_for_visual()   # we don't visualize mask stuff
+    df = get_eval_dataflow_for_visual(data_test)   
 
     df.reset_state()
     nr_visualize = len(df)
@@ -419,12 +419,12 @@ def do_visualize(model, model_path, output_dir='output'):
             cv2.imwrite("{}/{}_{}.png".format(output_dir, fname, idx), viz)
 
 
-def do_evaluate(pred_config, output_file, data_val):
+def do_evaluate(pred_config, output_file, data_test):
     num_gpu = cfg.TRAIN.NUM_GPUS
     graph_funcs = MultiTowerOfflinePredictor(
         pred_config, list(range(num_gpu))).get_predictors()
 
-    for dataset in data_val:
+    for dataset in data_test:
         logger.info("Evaluating {} ...".format(dataset))
         dataflows = [
             get_eval_dataflow(dataset, shard=k, num_shards=num_gpu)
@@ -448,7 +448,7 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser()
     parser.add_argument('--load', help='load a model for evaluation or training. Can overwrite BACKBONE.WEIGHTS')
-    parser.add_argument('--logdir', help='log directory', default='train_log/right_f10_all/')
+    parser.add_argument('--logdir', help='log directory', default='train_log/f10_all_elastic_rotate3/')
     parser.add_argument('--output_dir', help='output_di directory')
     parser.add_argument('--visualize', action='store_true', help='visualize intermediate results')
     parser.add_argument('--evaluate', help="Run evaluation. "
@@ -481,7 +481,7 @@ if __name__ == '__main__':
             cfg.TEST.RESULT_SCORE_THRESH = cfg.TEST.RESULT_SCORE_THRESH_VIS
 
         if args.visualize:
-            do_visualize(MODEL, args.load, args.output_dir)
+            do_visualize(MODEL, args.load, args.eval_data, args.output_dir)
         else:
             predcfg = PredictConfig(
                 model=MODEL,
@@ -496,7 +496,7 @@ if __name__ == '__main__':
                 assert args.evaluate.endswith('.json'), args.evaluate
                 do_evaluate(predcfg, args.evaluate, (args.eval_data,))
     else:
-        for i in range(5):
+        for i in range(6, 10):
             tf.reset_default_graph()
             MODEL = ResNetFPNModel() if cfg.MODE_FPN else ResNetC4Model()
             DetectionDataset() 

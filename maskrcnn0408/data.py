@@ -283,7 +283,8 @@ def get_train_dataflow(i):
 
     If MODE_MASK, gt_masks: (N, h, w)
     """
-    # data = 'train_len-4'
+    # roidbs = DetectionDataset().load_training_roidbs(['train_len-4'])
+
     roidbs = DetectionDataset().load_training_roidbs([i + '_train'])
     print_class_histogram(roidbs)
 
@@ -296,33 +297,39 @@ def get_train_dataflow(i):
     roidbs = list(filter(lambda img: len(img['boxes'][img['is_crowd'] == 0]) > 0, roidbs))
     logger.info("Filtered {} images which contain no non-crowd groudtruth boxes. Total #images for training: {}".format(
         num - len(roidbs), len(roidbs)))
-    roidbs_1 = copy.deepcopy(roidbs)
     roidbs_2 = copy.deepcopy(roidbs)
+    roidbs_3 = copy.deepcopy(roidbs)
+    roidbs_4 = copy.deepcopy(roidbs)
 
     for roi in roidbs:
         roi['aug_name'] = 'origin'
     for roi in roidbs_elastic:
         roi['aug_name'] = 'elastic'   
-         
-    for roi in roidbs_1:
-        roi['aug_name'] = 'flip'
-    for roi in roidbs_2:
-        roi['aug_name'] = 'rotate'
 
-    roidbs = roidbs + roidbs_1 + roidbs_2
-    roidbs = roidbs + roidbs_elastic
+    for roi in roidbs_2:
+        roi['aug_name'] = 'rotate90'
+    for roi in roidbs_3:
+        roi['aug_name'] = 'rotate180'
+    for roi in roidbs_4:
+        roi['aug_name'] = 'rotate270'
+
+    roidbs = roidbs + roidbs_2 + roidbs_3 + roidbs_4 
+    roidbs += roidbs_elastic
 
     ds = DataFromList(roidbs, shuffle=True)
     print(len(ds))
 
     aug_0 = imgaug.AugmentorList(
             [CustomResize(cfg.PREPROC.TRAIN_SHORT_EDGE_SIZE, cfg.PREPROC.MAX_SIZE)])
-    aug_1 = imgaug.AugmentorList(
-            [CustomResize(cfg.PREPROC.TRAIN_SHORT_EDGE_SIZE, cfg.PREPROC.MAX_SIZE),
-             imgaug.Flip(horiz=True, prob=1)])
     aug_2 = imgaug.AugmentorList(
             [CustomResize(cfg.PREPROC.TRAIN_SHORT_EDGE_SIZE, cfg.PREPROC.MAX_SIZE),
-             imgaug.Rotation(90)])
+             imgaug.Rotation90(90)])
+    aug_3 = imgaug.AugmentorList(
+            [CustomResize(cfg.PREPROC.TRAIN_SHORT_EDGE_SIZE, cfg.PREPROC.MAX_SIZE),
+             imgaug.Rotation(180)])
+    aug_4 = imgaug.AugmentorList(
+            [CustomResize(cfg.PREPROC.TRAIN_SHORT_EDGE_SIZE, cfg.PREPROC.MAX_SIZE),
+             imgaug.Rotation90(270)])
 
     def preprocess(roidb):
         fname, boxes, klass, is_crowd = roidb['file_name'], roidb['boxes'], roidb['class'], roidb['is_crowd']
@@ -342,10 +349,12 @@ def get_train_dataflow(i):
         # augmentation:
         if roidb['aug_name'] == 'origin' or roidb['aug_name'] == 'elastic':
             aug = aug_0
-        elif roidb['aug_name'] == 'flip':
-            aug = aug_1
-        elif roidb['aug_name'] == 'rotate':
+        elif roidb['aug_name'] == 'rotate90':
             aug = aug_2
+        elif roidb['aug_name'] == 'rotate180':
+            aug = aug_3
+        elif roidb['aug_name'] == 'rotate270':
+            aug = aug_4
 
         im, params = aug.augment_return_params(im)
         points = box_to_point8(boxes)
@@ -406,7 +415,7 @@ def get_train_dataflow(i):
     return ds
 
 
-def get_eval_dataflow_for_visual():
+def get_eval_dataflow_for_visual(data_test):
     """
     Return a training dataflow. Each datapoint consists of the following:
 
@@ -422,7 +431,7 @@ def get_eval_dataflow_for_visual():
     If MODE_MASK, gt_masks: (N, h, w)
     """
 
-    roidbs = DetectionDataset().load_training_roidbs_viz(cfg.DATA.VAL)
+    roidbs = DetectionDataset().load_training_roidbs_viz(data_test)
     print_class_histogram(roidbs)
 
     for d in roidbs:
