@@ -48,7 +48,7 @@ class COCODetection:
             basedir, 'Annotations/instances_{}.json'.format(name))
         assert os.path.isfile(annotation_file), annotation_file
 
-        from pycocotools.coco import COCO
+        from coco import COCO
         self.coco = COCO(annotation_file)
         logger.info("Instances loaded from {}.".format(annotation_file))
 
@@ -60,7 +60,7 @@ class COCODetection:
         Returns:
             dict: the evaluation metrics
         """
-        from pycocotools.cocoeval import COCOeval
+        from cocoeval import COCOeval
         ret = {}
         cocoDt = self.coco.loadRes(json_file)
         cocoEval = COCOeval(self.coco, cocoDt, 'bbox')
@@ -70,9 +70,13 @@ class COCODetection:
         ious_dict = cocoEval.ious
         iou_sum = 0
         iou_list = ious_dict.values()
+            # logger.info(iou_list)
         for i in iou_list:
             if len(i):
+                 # logger.info(i)
                 iou_sum += i[0][0]
+            # logger.info(iou_sum)
+            # logger.info(len(iou_list))
         res = iou_sum / len(iou_list)
         print('coco api iou....(bbox)',res)
         fields = ['IoU=0.5:0.95', 'IoU=0.5', 'IoU=0.75', 'small', 'medium', 'large']
@@ -88,11 +92,15 @@ class COCODetection:
             ious_dict = cocoEval.ious
             iou_sum = 0
             iou_list = ious_dict.values()
+            # logger.info(iou_list)
             for i in iou_list:
                 if len(i):
+                    # logger.info(i)
                     iou_sum += i[0][0]
-                    # iou_sum += i[0].max()  #之前没有改成max?
+            # logger.info(iou_sum)
+            # logger.info(len(iou_list))
             res = iou_sum / len(iou_list)
+            #logger.info(res)
             print('coco api iou...(segmentation)',res)
             for k in range(6):
                 ret['mAP(segm)/' + fields[k]] = cocoEval.stats[k]

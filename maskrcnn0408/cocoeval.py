@@ -77,6 +77,10 @@ class COCOeval:
         self._paramsEval = {}               # parameters for evaluation
         self.stats = []                     # result summarization
         self.ious = {}
+        self.tprs = {}
+        self.fprs ={}
+        self.my_tpr = {}
+        self.my_fpr = {}
         self.my_ious = {}                      # ious between all gts and dts
         if not cocoGt is None:
             self.params.imgIds = sorted(cocoGt.getImgIds())
@@ -159,9 +163,12 @@ class COCOeval:
         self.ious = {(imgId, catId): computeIoU(imgId, catId) \
                         for imgId in p.imgIds
                         for catId in catIds}
-        # self.my_ious = {(imgId, catId): self.compute_my_IoU(imgId, catId) \
-        #                 for imgId in p.imgIds
-        #                 for catId in catIds}
+        self.tprs = {(imgId, catId): self.compute_my_TPR(imgId, catId) \
+                        for imgId in p.imgIds
+                        for catId in catIds}
+        self.fprs = {(imgId, catId): self.compute_my_FPR(imgId, catId) \
+                        for imgId in p.imgIds
+                        for catId in catIds}
         iou_sum=0
         self.my_ious =  self.ious.values()
         for i in self.my_ious:
@@ -169,6 +176,22 @@ class COCOeval:
                 iou_sum += i[0][0]
         res = iou_sum / len(self.my_ious)
         print('iou result...',res)
+        self.my_tpr =  self.tprs.values()
+        tpr_sum = 0
+        for j in self.my_tpr:
+            if len(j):
+                tpr_sum += j[0][0]
+        tpr_mean = tpr_sum / len(self.my_tpr)
+        print('tpr...',tpr_mean)
+
+        self.my_fpr =  self.fprs.values()
+        fpr_sum = 0
+        for j in self.my_fpr:
+            if len(j):
+                fpr_sum += j[0][0]
+        fpr_mean = fpr_sum / len(self.my_fpr)
+        print('fpr...',fpr_mean)
+        
         evaluateImg = self.evaluateImg
         maxDet = p.maxDets[-1]
         self.evalImgs = [evaluateImg(imgId, catId, areaRng, maxDet)
@@ -255,7 +278,7 @@ class COCOeval:
         # lll=np.ndarray(shape=(1,1), dtype=np.float64, buffer=np.array(ll))
         # print('lll......',lll)
         return ious
-    def compute_my_IoU(self, imgId, catId):
+    def compute_my_TPR(self, imgId, catId):
         p = self.params
         if p.useCats:
             gt = self._gts[imgId,catId]
@@ -292,10 +315,11 @@ class COCOeval:
         # print(g)
         # print('i want to print dt size...',dt[0]['segmentation']['size'])
         # print(gt[0])
-        n=[]
-        n.append(dt[0]['segmentation'])
+        #n=[]
+        #n.append(dt[0]['segmentation'])
         # print('input to rle...',n)
-        d_img=maskUtils.decode(dt[0]['segmentation'])
+        if(len(dt)>0):
+            d_img=maskUtils.decode(dt[0]['segmentation'])
        
         # g_img=maskUtils.decode(dt[0]['segmentation']['counts'])
         # print(d_img)
@@ -305,31 +329,131 @@ class COCOeval:
         # img_binary = img_binary.astype(np.float32)
         # # test_mask_gt_img = cv2.resize(test_mask_gt[i, 0], (image_cols, image_rows)) 
         # img_binary = img_binary.astype(np.float32)
-        if p.iouType == 'segm':
-            gg_img=maskUtils.decode(gt[0]['segmentation'])
-        elif p.iouType == 'bbox':
-            g_img = gt[0]['segmentation']
-            RLEs = maskUtils.frPyObjects(g_img, dt[0]['segmentation']['size'][0], dt[0]['segmentation']['size'][1])
-            gg_img=maskUtils.decode(RLEs[0])
+            if p.iouType == 'segm':
+                gg_img=maskUtils.decode(gt[0]['segmentation'])
+            elif p.iouType == 'bbox':
+                g_img = gt[0]['segmentation']
+                RLEs = maskUtils.frPyObjects(g_img, dt[0]['segmentation']['size'][0], dt[0]['segmentation']['size'][1])
+                gg_img=maskUtils.decode(RLEs[0])
         # print('gg_img max...',gg_img.max())
         # #d_img = d_img.astype(np.float32)
         # print('gg_img size...',gg_img.shape)
         # print('d_img size...',d_img.shape)
         # print('rle size...',RLEs)
         # print('gg_img.convert(L) size',gg_img.convert('L').shape)
-        index = self.np_IOU_coef(gg_img, d_img)
-        print(p.iouType,'...myious...',index)
+        #print('gg最大值.................',gg_img.max())
+        #print('d最大值.................',d_img.max())
+            tp = sum(sum(np.logical_and(gg_img.reshape(1, -1),d_img.reshape(1, -1))))
+        #print('tp的值......',tp)
+            gt_all = sum(sum(gg_img))
+        #print('ground truth....',gt_all)
+            fp = sum(sum(d_img))-tp
+        #print('d_img....',sum(sum(d_img)))
+            tpr = tp/gt_all
+            fpr = fp/gt_all
+        #index = self.np_IOU_coef(gg_img, d_img)
+        #print('..........................................tpr.............................',tpr)
+        #print('..........................................fpr.............................',fpr)
         # for g in gt:
              #print('bbox', g)
              # pass
         #return ious
         # print('ioutype',ious)
+        else:
+            tpr=0
         ll=[]
-        ll.append(index)
+        ll.append(tpr)
         lll=np.ndarray(shape=(1,1), dtype=np.float64, buffer=np.array(ll))
         # print('lll......',lll)
         return lll   
+    def compute_my_FPR(self, imgId, catId):
+        p = self.params
+        if p.useCats:
+            gt = self._gts[imgId,catId]
+            dt = self._dts[imgId,catId]
+        else:
+            gt = [_ for cId in p.catIds for _ in self._gts[imgId,cId]]
+            dt = [_ for cId in p.catIds for _ in self._dts[imgId,cId]]
+        if len(gt) == 0 and len(dt) ==0:
+            return []
+        inds = np.argsort([-d['score'] for d in dt], kind='mergesort')
+        dt = [dt[i] for i in inds]
+        if len(dt) > p.maxDets[-1]:
+            dt=dt[0:p.maxDets[-1]]
+        # print('the following is dt:',dt)
+        # print('the following is gt:',gt)
+        if p.iouType == 'segm':
+            g = [g['segmentation'] for g in gt]
+            d = [d['segmentation'] for d in dt] 
+        elif p.iouType == 'bbox':
+            g = [g['bbox'] for g in gt]
+            d = [d['bbox'] for d in dt]
+        else:
+            raise Exception('unknown iouType for iou computation')
 
+        
+
+        # compute iou between each dt and gt region
+        iscrowd = [int(o['iscrowd']) for o in gt]   
+        # print('detection...')
+        # print('len_d',len(d))
+        # print(d)
+        # print('ground truth...')
+        # print('g',len(g))
+        # print(g)
+        # print('i want to print dt size...',dt[0]['segmentation']['size'])
+        # print(gt[0])
+        #n=[]
+        #n.append(dt[0]['segmentation'])
+        # print('input to rle...',n)
+        if(len(dt)>0):
+            d_img=maskUtils.decode(dt[0]['segmentation'])
+       
+        # g_img=maskUtils.decode(dt[0]['segmentation']['counts'])
+        # print(d_img)
+        # print(type(d_img))
+        # print(g_img)
+        # test_mask_gt_img = test_mask_gt[i, 0]
+        # img_binary = img_binary.astype(np.float32)
+        # # test_mask_gt_img = cv2.resize(test_mask_gt[i, 0], (image_cols, image_rows)) 
+        # img_binary = img_binary.astype(np.float32)
+            if p.iouType == 'segm':
+                gg_img=maskUtils.decode(gt[0]['segmentation'])
+            elif p.iouType == 'bbox':
+                g_img = gt[0]['segmentation']
+                RLEs = maskUtils.frPyObjects(g_img, dt[0]['segmentation']['size'][0], dt[0]['segmentation']['size'][1])
+                gg_img=maskUtils.decode(RLEs[0])
+        # print('gg_img max...',gg_img.max())
+        # #d_img = d_img.astype(np.float32)
+        # print('gg_img size...',gg_img.shape)
+        # print('d_img size...',d_img.shape)
+        # print('rle size...',RLEs)
+        # print('gg_img.convert(L) size',gg_img.convert('L').shape)
+        #print('gg最大值.................',gg_img.max())
+        #print('d最大值.................',d_img.max())
+            tp = sum(sum(np.logical_and(gg_img.reshape(1, -1),d_img.reshape(1, -1))))
+        #print('tp的值......',tp)
+            gt_all = sum(sum(gg_img))
+        #print('ground truth....',gt_all)
+            fp = sum(sum(d_img))-tp
+        #print('d_img....',sum(sum(d_img)))
+            tpr = tp/gt_all
+            fpr = fp/gt_all
+        #index = self.np_IOU_coef(gg_img, d_img)
+        #print('..........................................tpr.............................',tpr)
+        #print('..........................................fpr.............................',fpr)
+        # for g in gt:
+             #print('bbox', g)
+             # pass
+        #return ious
+        # print('ioutype',ious)
+        else:
+            fpr = 0
+        ll=[]
+        ll.append(fpr)
+        lll=np.ndarray(shape=(1,1), dtype=np.float64, buffer=np.array(ll))
+        # print('lll......',lll)
+        return lll   
     def computeOks(self, imgId, catId):
         p = self.params
         # dimention here should be Nxm
