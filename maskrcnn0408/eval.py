@@ -23,6 +23,13 @@ from common import CustomResize, clip_boxes
 from data import get_eval_dataflow
 from dataset import DetectionDataset
 from config import config as cfg
+import cv2
+
+import pydensecrf.densecrf as dcrf
+from pydensecrf.utils import unary_from_labels, create_pairwise_bilateral, create_pairwise_gaussian
+from skimage.color import gray2rgb
+from skimage.color import rgb2gray
+from skimage.io import imread, imsave
 
 try:
     import horovod.tensorflow as hvd
@@ -97,12 +104,71 @@ def predict_image(img, model_func):
         full_masks = [_paste_mask(box, mask, orig_shape)
                       for box, mask in zip(boxes, masks[0])]
         masks = full_masks
+        masks = [crf(img, mask, 'crf_out.png') for mask in masks]
+        
     else:
         # fill with none
         masks = [None] * len(boxes)
 
     results = [DetectionResult(*args) for args in zip(boxes, probs, labels.tolist(), masks)]
     return results
+
+
+def crf(original_image, annotated_image, output_image, use_2d = True):
+    
+
+    # Converting annotated image to RGB if it is Gray scale
+    if(len(annotated_image.shape)<3):
+        annotated_image = gray2rgb(annotated_image)
+    
+    # imsave("testing2.png",annotated_image)
+        
+    #Converting the annotations RGB color to single 32 bit integer
+    annotated_label = annotated_image[:,:,0] + (annotated_image[:,:,1]<<8) + (annotated_image[:,:,2]<<16)
+    
+    # Convert the 32bit integer color to 0,1, 2, ... labels.
+    colors, labels = np.unique(annotated_label, return_inverse=True)
+    
+    #Gives no of class labels in the annotated image
+    n_labels = len(set(labels.flat)) 
+    
+    # print("No of labels in the Image are ")
+    # print(n_labels)
+    
+    #Setting up the CRF model
+    if use_2d :
+        d = dcrf.DenseCRF2D(original_image.shape[1], original_image.shape[0], n_labels)
+
+        # get unary potentials (neg log probability)
+        U = unary_from_labels(labels, n_labels, gt_prob=0.7, zero_unsure=False)
+        d.setUnaryEnergy(U)
+
+        # This adds the color-independent term, features are the locations only.
+        d.addPairwiseGaussian(sxy=(3, 3), compat=3, kernel=dcrf.DIAG_KERNEL,
+                          normalization=dcrf.NORMALIZE_SYMMETRIC)
+
+        # This adds the color-dependent term, i.e. features are (x,y,r,g,b).
+        # d.addPairwiseBilateral(sxy=(80, 80), srgb=(13, 13, 13), rgbim=original_image,
+        #                    compat=10,
+        #                    kernel=dcrf.DIAG_KERNEL,
+        #                    normalization=dcrf.NORMALIZE_SYMMETRIC)
+        # pairwise_energy = create_pairwise_bilateral(sdims=(10,10), schan=(0.01,), img=original_image, chdim=2)
+        # d.addPairwiseEnergy(pairwise_energy, compat=10)
+
+    #Run Inference for 5 steps 
+    Q = d.inference(10)
+
+    # Find out the most probable class for each pixel.
+    MAP = np.argmax(Q, axis=0)
+
+    # Convert the MAP (labels) back to the corresponding colors and save the image.
+    # Note that there is no "unknown" here anymore, no matter what we had at first.
+    crf_out = MAP.reshape((original_image.shape[0],original_image.shape[1]))
+    # imsave(output_image, crf_out*255)
+    crf_out = crf_out.astype('uint8')
+    # cv2.imwrite(output_image, crf_out*255)
+    return crf_out
+
 
 
 def predict_image_for_viz(img, model_func):

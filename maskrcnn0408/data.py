@@ -288,8 +288,8 @@ def get_train_dataflow(i):
     roidbs = DetectionDataset().load_training_roidbs([i + '_train'])
     print_class_histogram(roidbs)
 
-    roidbs_elastic = DetectionDataset().load_training_roidbs(['elastic_' + i + '_train'])
-    print_class_histogram(roidbs)
+    # roidbs_elastic = DetectionDataset().load_training_roidbs(['elastic_' + i + '_train'])
+    # print_class_histogram(roidbs)
 
     # Valid training images should have at least one fg box.
     # But this filter shall not be applied for testing.
@@ -297,39 +297,39 @@ def get_train_dataflow(i):
     roidbs = list(filter(lambda img: len(img['boxes'][img['is_crowd'] == 0]) > 0, roidbs))
     logger.info("Filtered {} images which contain no non-crowd groudtruth boxes. Total #images for training: {}".format(
         num - len(roidbs), len(roidbs)))
-    roidbs_2 = copy.deepcopy(roidbs)
-    roidbs_3 = copy.deepcopy(roidbs)
-    roidbs_4 = copy.deepcopy(roidbs)
+    # roidbs_2 = copy.deepcopy(roidbs)
+    # roidbs_3 = copy.deepcopy(roidbs)
+    # roidbs_4 = copy.deepcopy(roidbs)
 
     for roi in roidbs:
         roi['aug_name'] = 'origin'
-    for roi in roidbs_elastic:
-        roi['aug_name'] = 'elastic'   
+    # for roi in roidbs_elastic:
+    #     roi['aug_name'] = 'elastic'   
 
-    for roi in roidbs_2:
-        roi['aug_name'] = 'rotate90'
-    for roi in roidbs_3:
-        roi['aug_name'] = 'rotate180'
-    for roi in roidbs_4:
-        roi['aug_name'] = 'rotate270'
+    # for roi in roidbs_2:
+    #     roi['aug_name'] = 'rotate90'
+    # for roi in roidbs_3:
+    #     roi['aug_name'] = 'rotate180'
+    # for roi in roidbs_4:
+    #     roi['aug_name'] = 'rotate270'
 
-    roidbs = roidbs + roidbs_2 + roidbs_3 + roidbs_4 
-    roidbs += roidbs_elastic
+    # roidbs = roidbs + roidbs_2 + roidbs_3 + roidbs_4 
+    # roidbs += roidbs_elastic
 
     ds = DataFromList(roidbs, shuffle=True)
     print(len(ds))
 
     aug_0 = imgaug.AugmentorList(
             [CustomResize(cfg.PREPROC.TRAIN_SHORT_EDGE_SIZE, cfg.PREPROC.MAX_SIZE)])
-    aug_2 = imgaug.AugmentorList(
-            [CustomResize(cfg.PREPROC.TRAIN_SHORT_EDGE_SIZE, cfg.PREPROC.MAX_SIZE),
-             imgaug.Rotation90(90)])
-    aug_3 = imgaug.AugmentorList(
-            [CustomResize(cfg.PREPROC.TRAIN_SHORT_EDGE_SIZE, cfg.PREPROC.MAX_SIZE),
-             imgaug.Rotation(180)])
-    aug_4 = imgaug.AugmentorList(
-            [CustomResize(cfg.PREPROC.TRAIN_SHORT_EDGE_SIZE, cfg.PREPROC.MAX_SIZE),
-             imgaug.Rotation90(270)])
+    # aug_2 = imgaug.AugmentorList(
+    #         [CustomResize(cfg.PREPROC.TRAIN_SHORT_EDGE_SIZE, cfg.PREPROC.MAX_SIZE),
+    #          imgaug.Rotation90(90)])
+    # aug_3 = imgaug.AugmentorList(
+    #         [CustomResize(cfg.PREPROC.TRAIN_SHORT_EDGE_SIZE, cfg.PREPROC.MAX_SIZE),
+    #          imgaug.Rotation(180)])
+    # aug_4 = imgaug.AugmentorList(
+    #         [CustomResize(cfg.PREPROC.TRAIN_SHORT_EDGE_SIZE, cfg.PREPROC.MAX_SIZE),
+    #          imgaug.Rotation90(270)])
 
     def preprocess(roidb):
         fname, boxes, klass, is_crowd = roidb['file_name'], roidb['boxes'], roidb['class'], roidb['is_crowd']
@@ -349,12 +349,12 @@ def get_train_dataflow(i):
         # augmentation:
         if roidb['aug_name'] == 'origin' or roidb['aug_name'] == 'elastic':
             aug = aug_0
-        elif roidb['aug_name'] == 'rotate90':
-            aug = aug_2
-        elif roidb['aug_name'] == 'rotate180':
-            aug = aug_3
-        elif roidb['aug_name'] == 'rotate270':
-            aug = aug_4
+        # elif roidb['aug_name'] == 'rotate90':
+        #     aug = aug_2
+        # elif roidb['aug_name'] == 'rotate180':
+        #     aug = aug_3
+        # elif roidb['aug_name'] == 'rotate270':
+        #     aug = aug_4
 
         im, params = aug.augment_return_params(im)
         points = box_to_point8(boxes)

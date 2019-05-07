@@ -314,6 +314,9 @@ class ResNetFPNModel(DetectionModel):
                 maskrcnn_head_func = getattr(model_mrcnn, cfg.FPN.MRCNN_HEAD_FUNC)
                 mask_logits = maskrcnn_head_func(
                     'maskrcnn', roi_feature_maskrcnn, cfg.DATA.NUM_CATEGORY)   # #fg x #cat x 28 x 28
+
+                # crf as post-processing
+                
                 indices = tf.stack([tf.range(tf.size(final_labels)), tf.cast(final_labels, tf.int32) - 1], axis=1)
                 final_mask_logits = tf.gather_nd(mask_logits, indices)   # #resultx28x28
                 tf.sigmoid(final_mask_logits, name='output/masks')
@@ -448,7 +451,7 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser()
     parser.add_argument('--load', help='load a model for evaluation or training. Can overwrite BACKBONE.WEIGHTS')
-    parser.add_argument('--logdir', help='log directory', default='train_log/f10_all_elastic_rotate3/')
+    parser.add_argument('--logdir', help='log directory', default='train_log/test/')
     parser.add_argument('--output_dir', help='output_di directory')
     parser.add_argument('--visualize', action='store_true', help='visualize intermediate results')
     parser.add_argument('--evaluate', help="Run evaluation. "
@@ -496,7 +499,7 @@ if __name__ == '__main__':
                 assert args.evaluate.endswith('.json'), args.evaluate
                 do_evaluate(predcfg, args.evaluate, (args.eval_data,))
     else:
-        for i in range(6, 10):
+        for i in range(10, 11):
             tf.reset_default_graph()
             MODEL = ResNetFPNModel() if cfg.MODE_FPN else ResNetC4Model()
             DetectionDataset() 

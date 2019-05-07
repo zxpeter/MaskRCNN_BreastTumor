@@ -118,7 +118,7 @@ _C.TRAIN.WEIGHT_DECAY = 1e-4
 _C.TRAIN.BASE_LR = 1e-2  # defined for total batch size=8. Otherwise it will be adjusted automatically
 _C.TRAIN.WARMUP = 1000   # in terms of iterations. This is not affected by #GPUs
 _C.TRAIN.WARMUP_INIT_LR = 1e-2 * 0.33  # defined for total batch size=8. Otherwise it will be adjusted automatically
-_C.TRAIN.STEPS_PER_EPOCH = 500 #500
+_C.TRAIN.STEPS_PER_EPOCH = 100 #500
 _C.TRAIN.STARTING_EPOCH = 1  # the first epoch to start with, useful to continue a training
 
 # LR_SCHEDULE means equivalent steps when the total batch size is 8.
@@ -127,7 +127,7 @@ _C.TRAIN.STARTING_EPOCH = 1  # the first epoch to start with, useful to continue
 # Therefore, there is *no need* to modify the config if you only change the number of GPUs.
 # _C.TRAIN.LR_SCHEDULE = [2000, 3000, 4000]      # 4 GPU
 _C.TRAIN.LR_SCHEDULE = [5000, 6000, 7000]      # 4 GPU
-# _C.TRAIN.LR_SCHEDULE = [1000, 2000, 3000]      # 2 GPU
+# _C.TRAIN.LR_SCHEDULE = [8000, 9000, 10000]      # 4 GPU
 # _C.TRAIN.LR_SCHEDULE = [10000, 12000, 13000]      # "1x" schedule in detectron
 # _C.TRAIN.LR_SCHEDULE = [120000, 160000, 180000]      # "1x" schedule in detectron
 #_C.TRAIN.LR_SCHEDULE = [240000, 320000, 360000]      # "2x" schedule in detectron

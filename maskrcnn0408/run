@@ -24,7 +24,7 @@ nohup ./train.py --config MODE_MASK=True MODE_FPN=False DATA.BASEDIR=/media/sdc/
 /media/sdc/xzhao/COCO/DIR
 
 
-./train.py --evaluate output.json --eval_data 0_test --load train_log/f10_all_elastic_rotate3/f_0/mAP.index --config MODE_MASK=True MODE_FPN=True DATA.BASEDIR=/media/sdc/xzhao/code/small_dataset 
+./train.py --evaluate output.json --eval_data 0_test --load train_log/f10_origin/f_0/mAP.index --config MODE_MASK=True MODE_FPN=True DATA.BASEDIR=/media/sdc/xzhao/code/small_dataset 
 
 
 
